@@ -1,6 +1,7 @@
-# Examples for pyyes
+# Examples for the GAIN Ecosystem
 
-This repository contains examples for the GAIN Proof-of-Concept.
+This repository contains:
+ * A working client for the GAIN Proof-of-Concept
 
 ## Setup
 ```
@@ -17,4 +18,4 @@ Then run:
 ```
 python3 examples/gain.py
 ```
-
+... and point your browser to http://localhost:3000/
