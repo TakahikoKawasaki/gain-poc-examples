@@ -1,0 +1,24 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>GAIN Example RP</title>
+
+</head>
+
+<body>
+    Please select the IDP:
+
+    <form action="start" method="get">
+        <select name="idp">
+            {% for name, data in idp_configs.items() %}
+                <option value="{{ name }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="GAIN!">
+    </form>
+</body>
+</html>
