@@ -1,0 +1,16 @@
+{% extends 'base.html.j2' %}
+    
+{% block body %}
+<p><b>Success!</b></p>
+We received the following data:
+
+<p>In the ID Token:</p>
+<pre>
+{{ dump(user_data_id_token) }}
+</pre>
+<p>From the Userinfo Endpoint:</p>
+<pre>
+{{ dump(user_data_userinfo) }}
+</pre>
+<a href="/">start over</a>
+{% endblock %}

@@ -1,0 +1,48 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>GAIN Example RP</title>
+    <style>
+        body {
+            font-family: Roboto, Helvetica, sans-serif;
+            font-size: 14px;
+            text-align: center;
+        }
+        h1 {
+            color: #2196F3;
+        }
+        .content {
+            background-color: #eee;
+            margin: 1em;
+            padding: 1em;
+            width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        select, button, input {
+            padding: 0.5ex;
+        }
+
+        pre {
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+<img src="https://gainforum.org/GAINmap.png" style="width:300px">
+<h1>GAIN DIGITAL TRUST</h1>
+<h2>Example Relying Party</h2>
+<p>This is an example of a Relying Party that uses the interface defined in the GAIN Proof-of-Concept working group.</p>
+    <div class="content">
+    {% block body %}
+    {% endblock %}
+    </div>
+</body>
+</html>

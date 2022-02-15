@@ -15,8 +15,8 @@ idp_configs = {
 
 class GAINExample:
     def _cp_dispatch(self, vpath):
-        print (vpath)
-        if vpath == ['yes', 'oidccb']:
+        print(vpath)
+        if vpath == ["yes", "oidccb"]:
             return self
         return vpath
 
@@ -71,12 +71,12 @@ class GAINExample:
         user_data_id_token = yesflow.send_token_request()
         user_data_userinfo = yesflow.send_userinfo_request()
 
-        return (
-            "Got user data in the ID token: <pre>"
-            + yaml.dump(user_data_id_token)
-            + "</pre> ... and from the userinfo endpoint: <pre>"
-            + yaml.dump(user_data_userinfo)
-            + "</pre>"
+        tmpl = env.get_template("result.html.j2")
+        return tmpl.render(
+            idp_configs=idp_configs,
+            user_data_id_token=user_data_id_token,
+            user_data_userinfo=user_data_userinfo,
+            dump=yaml.dump,
         )
 
 
