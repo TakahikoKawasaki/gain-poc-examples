@@ -1,7 +1,8 @@
 # Examples for the GAIN Ecosystem
 
-This repository contains:
- * A working client for the GAIN Proof-of-Concept
+This repository contains a working client for the GAIN Proof-of-Concept.
+
+![GAIN launcher page](screenshot.png "GAIN launcher")
 
 ## Setup
 ```
