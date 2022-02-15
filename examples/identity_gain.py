@@ -5,7 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 
 env = Environment(loader=FileSystemLoader("static"))
 
-gain_config = yaml.load(open("config/gain.yml"))
+gain_config = yaml.load(open("config/gain.yml"), Loader=yaml.FullLoader)
 
 idp_configs = {
     name: yes.YesConfiguration.from_dict(config)

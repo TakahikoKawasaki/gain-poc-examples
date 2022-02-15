@@ -1,5 +1,4 @@
 pyyes
 cherrypy
-yaml
+pyyaml
 jinja2
-json
