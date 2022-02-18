@@ -120,15 +120,8 @@ class GAINExample:
         configuration = idp_configs[cherrypy.session["idp"]]
         gainflow = GAINFlow(configuration, cherrypy.session["gain"])
 
-        try:
-            gainflow.handle_oidc_callback(iss, code, error, error_description)
-        except yes.YesAccountSelectionRequested as exception:
-            # user selected "select another bank" → must send user back to account chooser
-            raise cherrypy.HTTPRedirect(exception.redirect_uri)
-        except yes.YesError as exception:
-            # not implemented here: show nice error messages
-            raise cherrypy.HTTPError(400, str(exception))
-
+        gainflow.handle_oidc_callback(iss, code, error, error_description)
+        
         # id token and userinfo are alternative ways to retrieve user information - see developer guide
         user_data_id_token = gainflow.send_token_request()
         user_data_userinfo = gainflow.send_userinfo_request()
