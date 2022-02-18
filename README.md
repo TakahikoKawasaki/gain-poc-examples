@@ -20,3 +20,7 @@ Then run:
 python3 examples/gain.py
 ```
 ... and point your browser to http://localhost:3000/
+
+## Known Issues
+
+BankID seems to set a very tight not-before (NBF) value in the ID token. To ensure that the example works, ensure that your computer's clock is set *precisely*! Check at https://time.is

@@ -1,5 +1,15 @@
+# The claims to be requested - this is used as the content of the 'claims'
+# parameter. 
 claims:
   id_token:
+    verified_claims:
+      claims:
+        given_name:
+        family_name:
+        birthdate:
+      verification:
+        trust_framework:
+  userinfo:
     verified_claims:
       claims:
         given_name:
@@ -15,3 +25,9 @@ idps:
     key_file: yes_sandbox_test_key.pem
     redirect_uri: http://localhost:3000/yes/oidccb
     issuer_url: https://testidp.sandbox.yes.com/issuer/10000001
+  "BankID":
+    client_id: yes-daniel
+    cert_file: /home/danielf/yes/my-keys/gain/bankid/cert.pem
+    key_file: /home/danielf/yes/my-keys/gain/bankid/key.pem
+    redirect_uri: http://localhost:3000/yes/oidccb
+    issuer_url: https://gain.oidc.pki.nu
