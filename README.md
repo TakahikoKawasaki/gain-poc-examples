@@ -17,7 +17,7 @@ Ensure that the key and cert files referenced in the configuration file can be f
 
 Then run:
 ```
-python3 examples/gain.py
+python3 examples/identity_gain.py
 ```
 ... and point your browser to http://localhost:3000/
 
