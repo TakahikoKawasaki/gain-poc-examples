@@ -1,7 +1,11 @@
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Optional
-import yaml
+
+import requests
 import cherrypy
+import yaml
 import yes
 from jinja2 import Environment, FileSystemLoader
 
@@ -9,8 +13,39 @@ env = Environment(loader=FileSystemLoader("static"))
 
 gain_config = yaml.load(open("config/gain.yml"), Loader=yaml.FullLoader)
 
+
+@dataclass
+class GAINConfiguration(yes.YesConfiguration):
+    client_secret: Optional[str] = None
+
+    def __post_init__(self):
+        if self.client_secret:
+            return
+        if not Path(self.cert_file).exists() or not Path(self.key_file).exists():
+            raise Exception(
+                f"Please provide a certificate and private key pair at the following "
+                f"locations: {self.cert_file} / {self.key_file} or change the locations "
+                f"in the configuration."
+            )
+
+    @staticmethod
+    def from_dict(dct):
+        return GAINConfiguration(
+            client_id=dct["client_id"],
+            cert_file=dct["cert_file"],
+            key_file=dct["key_file"],
+            redirect_uri=dct["redirect_uri"],
+            environment=dct.get("environment", "sandbox"),
+            qtsp_id=dct.get("qtsp_id"),
+            authz_style=yes.YesAuthzStyle.PUSHED
+            if (dct.get("authz_style", "pushed") == "pushed")
+            else yes.YesAuthzStyle.FRONTEND,
+            client_secret=dct.get("client_secret", None),
+        )
+
+
 idp_configs = {
-    name: yes.YesConfiguration.from_dict(config)
+    name: GAINConfiguration.from_dict(config)
     for name, config in gain_config["idps"].items()
 }
 
@@ -73,6 +108,47 @@ class GAINFlow(yes.YesIdentityFlow):
         print(f"Current unix timestamp: {datetime.now().timestamp()}")
         return super()._decode_and_validate_id_token(id_token_encoded)
 
+    def send_token_request(self) -> Optional[Dict]:
+        """
+        NOTE: This method is overridden to support IDPs that do not yet support
+        MTLS for client authentication. This is not compliant to the current
+        GAIN specification.
+        """
+
+        token_endpoint = self.session.oauth_configuration["token_endpoint"]
+        token_parameters = {
+            "client_id": self.config.client_id,
+            "redirect_uri": self.config.redirect_uri,
+            "grant_type": "authorization_code",
+            "code": self.session.authorization_code,
+            "code_verifier": self.session.pkce.verifier,
+        }
+        if self.config.client_secret:
+            token_parameters["client_secret"] = self.config.client_secret
+
+        self.log.debug(f"Prepared token request: {token_parameters}")
+
+        token_response = self._decode_or_raise_error(
+            requests.post(
+                token_endpoint, data=token_parameters, cert=self.cert_config,
+            ),
+            is_oauth=True,
+        )
+
+        self._debug_token_response = token_response
+
+        self.session.access_token = token_response["access_token"]
+
+        if "authorization_details" in token_response:
+            self.session.authorization_details_enriched = token_response[
+                "authorization_details"
+            ]
+
+        if "id_token" in token_response:
+            return self._decode_and_validate_id_token(token_response["id_token"])
+        else:
+            return
+
 
 class GAINExample:
     def _cp_dispatch(self, vpath):
@@ -101,7 +177,7 @@ class GAINExample:
 
         gainsession = GAINSession(gain_config["claims"])
         cherrypy.session["gain"] = gainsession
-        
+
         gainflow = GAINFlow(config, cherrypy.session["gain"])
         authz_url = gainflow.start_gain_flow(gain_config["idps"][idp]["issuer_url"])
         raise cherrypy.HTTPRedirect(authz_url)
@@ -121,7 +197,7 @@ class GAINExample:
         gainflow = GAINFlow(configuration, cherrypy.session["gain"])
 
         gainflow.handle_oidc_callback(iss, code, error, error_description)
-        
+
         # id token and userinfo are alternative ways to retrieve user information - see developer guide
         user_data_id_token = gainflow.send_token_request()
         user_data_userinfo = gainflow.send_userinfo_request()
