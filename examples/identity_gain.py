@@ -87,8 +87,8 @@ class GAINFlow(yes.YesIdentityFlow):
         error_description: Optional[str] = None,
     ):
         """
-        NOTE: The iss parameter is not yet supported by BankID. This is a
-        workaround for now.
+        NOTE: The iss parameter is not yet supported by BankID and Dizme. This
+        is a workaround for now.
         """
 
         if iss is None:
@@ -123,15 +123,24 @@ class GAINFlow(yes.YesIdentityFlow):
             "code": self.session.authorization_code,
             "code_verifier": self.session.pkce.verifier,
         }
+
         if self.config.client_secret:
             token_parameters["client_secret"] = self.config.client_secret
+            req = requests.post(
+                token_endpoint,
+                data=token_parameters,
+            )
+        else:
+            requests.post(
+                token_endpoint,
+                data=token_parameters,
+                cert=self.cert_config,
+            )
 
-        self.log.debug(f"Prepared token request: {token_parameters}")
+        self.log.debug(f"Sent token request: {token_parameters}")
 
         token_response = self._decode_or_raise_error(
-            requests.post(
-                token_endpoint, data=token_parameters, cert=self.cert_config,
-            ),
+            req,
             is_oauth=True,
         )
 
@@ -148,6 +157,41 @@ class GAINFlow(yes.YesIdentityFlow):
             return self._decode_and_validate_id_token(token_response["id_token"])
         else:
             return
+
+    def send_userinfo_request(self) -> Dict:
+        """
+        NOTE: This method is overridden to support IDPs that do not yet support
+        MTLS for client authentication. This is not compliant to the current
+        GAIN specification.
+        """
+        if not self.session.access_token:
+            raise Exception(
+                "No access token found. send_token_request must be used first to retrieve an access token."
+            )
+
+        if self.config.client_secret:
+            return self._decode_or_raise_error(
+                requests.get(
+                    self.session.oauth_configuration["userinfo_endpoint"],
+                    headers={
+                        "Authorization": f"Bearer {self.session.access_token}",
+                        "accept": "*/*",
+                    },
+                ),
+                is_oauth=True,
+            )
+        else:
+            return self._decode_or_raise_error(
+                requests.get(
+                    self.session.oauth_configuration["userinfo_endpoint"],
+                    headers={
+                        "Authorization": f"Bearer {self.session.access_token}",
+                        "accept": "*/*",
+                    },
+                    cert=self.cert_config,
+                ),
+                is_oauth=True,
+            )
 
 
 class GAINExample:
@@ -184,14 +228,20 @@ class GAINExample:
 
     @cherrypy.expose
     def oidccb(
-        self, iss=None, code=None, error=None, error_description=None, state=None
+        self,
+        iss=None,
+        code=None,
+        error=None,
+        error_description=None,
+        state=None,
+        **kwargs,
     ):
         """
         OpenID Connect callback endpoint. The user arrives here after going
         through the authentication/authorizaton steps at the bank.
 
         Note that the URL of this endpoint has to be registered with the GAIN
-        IDP for your client. 
+        IDP for your client.
         """
         configuration = idp_configs[cherrypy.session["idp"]]
         gainflow = GAINFlow(configuration, cherrypy.session["gain"])
@@ -220,4 +270,3 @@ cherrpy_config = {
     },
 }
 cherrypy.quickstart(GAINExample(), "/", cherrpy_config)
-

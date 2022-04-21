@@ -32,3 +32,10 @@ idps:
     key_file: /home/danielf/yes/my-keys/gain/bankid/key.pem
     redirect_uri: http://localhost:3000/yes/oidccb
     issuer_url: https://gain.oidc.pki.nu
+  "Dizme":
+    client_id: 164610c7-faab-4d0e-a903-b111a2b45326
+    client_secret: AVUNB7XnFU1elzuIomHs1yVVyzVSUbBW
+    redirect_uri: http://localhost:3000/yes/oidccb
+    issuer_url: https://gain-oidc-cl.dizme.io
+    cert_file: None
+    key_file: None
