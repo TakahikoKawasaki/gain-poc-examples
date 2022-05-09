@@ -131,7 +131,7 @@ class GAINFlow(yes.YesIdentityFlow):
                 data=token_parameters,
             )
         else:
-            requests.post(
+            req = requests.post(
                 token_endpoint,
                 data=token_parameters,
                 cert=self.cert_config,
