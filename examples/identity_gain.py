@@ -5,8 +5,10 @@ from typing import Dict, Optional
 
 import requests
 import cherrypy
+import jwt
 import yaml
 import yes
+import json
 from jinja2 import Environment, FileSystemLoader
 
 env = Environment(loader=FileSystemLoader("static"))
@@ -97,16 +99,51 @@ class GAINFlow(yes.YesIdentityFlow):
         return super().handle_oidc_callback(iss, code, error, error_description)
 
     def _decode_and_validate_id_token(self, id_token_encoded: str) -> Dict:
-        """
-        NOTE: BankID sets a very tight not-before timestamp in the ID token -
-        ensure that there is no clock skew! Check at https://time.is!
-
-        Added debugging information here to find the issue:
-        """
 
         print(f"Decoding and validating id_token: {id_token_encoded}")
         print(f"Current unix timestamp: {datetime.now().timestamp()}")
         return super()._decode_and_validate_id_token(id_token_encoded)
+
+    def _decode_and_validate_id_token(self, id_token_encoded: str) -> Dict:
+        """
+        NOTE: BankID sets a very tight not-before timestamp in the ID token -
+        ensure that there is no clock skew! Check at https://time.is!
+
+        Added debugging information here to find the issue.
+
+        NOTE: yes only knows RS256 for ID Tokens. This override function enables PS256 as well.
+        """
+        print(f"Decoding and validating id_token: {id_token_encoded}")
+        jwks_doc = self._decode_or_raise_error(
+            requests.get(self.session.oauth_configuration["jwks_uri"])
+        )
+
+        kid = jwt.get_unverified_header(id_token_encoded)["kid"]
+
+        for jwk in jwks_doc["keys"]:
+            if jwk["kid"] == kid:
+                key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
+                break
+        else:
+            raise Exception("KID not found during ID token verification.")
+
+        id_token = jwt.decode(
+            id_token_encoded,
+            key=key,
+            algorithms=["RS256", "PS256"],
+            issuer=self.session.oauth_configuration["issuer"],
+            audience=self.config.client_id,
+        )
+
+        if id_token["nonce"] != self.session.oidc_nonce:
+            raise Exception("Illegal nonce in ID token.")
+        if (
+            self.session.acr_values != []
+            and id_token["acr"] not in self.session.acr_values
+        ):
+            raise Exception("Illegal acr value in ID token.")
+
+        return id_token
 
     def send_token_request(self) -> Optional[Dict]:
         """
