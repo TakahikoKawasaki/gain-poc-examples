@@ -20,16 +20,16 @@ claims:
 
 # Configure IDPs here.
 idps:
-  "yes Test-IDP":
-    client_id: sandbox.yes.com:e85ff3bc-96f8-4ae7-b6b1-894d8dde9ebe
-    cert_file: yes_sandbox_test_cert.pem
-    key_file: yes_sandbox_test_key.pem
+  "authlete":
+    client_id: "5899463614448063"
+    cert_file: credentials/authlete/cert.pem
+    key_file: credentials/authlete/key.pem
     redirect_uri: http://localhost:3000/yes/oidccb
-    issuer_url: https://testidp.sandbox.yes.com/issuer/10000001
+    issuer_url: https://fapidev-as.authlete.net/
   "BankID":
     client_id: yes-daniel
-    cert_file: /home/danielf/yes/my-keys/gain/bankid/cert.pem
-    key_file: /home/danielf/yes/my-keys/gain/bankid/key.pem
+    cert_file: credentials/bankid/cert.pem
+    key_file: credentials/bankid/key.pem
     redirect_uri: http://localhost:3000/yes/oidccb
     issuer_url: https://gain.oidc.pki.nu
   "Dizme":
@@ -40,3 +40,10 @@ idps:
     issuer_url: https://gain-oidc-cl.dizme.io
     cert_file: None
     key_file: None
+  "yes Test-IDP":
+    # Please see https://yes.com/docs/rp-devguide/latest/ONBOARDING/index.html for the private key etc.
+    client_id: sandbox.yes.com:e85ff3bc-96f8-4ae7-b6b1-894d8dde9ebe
+    cert_file: yes_sandbox_test_cert.pem
+    key_file: yes_sandbox_test_key.pem
+    redirect_uri: http://localhost:3000/yes/oidccb
+    issuer_url: https://testidp.sandbox.yes.com/issuer/10000001
