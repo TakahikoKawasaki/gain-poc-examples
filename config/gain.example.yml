@@ -33,6 +33,7 @@ idps:
     redirect_uri: http://localhost:3000/yes/oidccb
     issuer_url: https://gain.oidc.pki.nu
   "Dizme":
+    # Please see tools/get_dizme_credentials.py on how to create a Dizme Client ID
     client_id: 164610c7-faab-4d0e-a903-b111a2b45326
     client_secret: AVUNB7XnFU1elzuIomHs1yVVyzVSUbBW
     redirect_uri: http://localhost:3000/yes/oidccb
